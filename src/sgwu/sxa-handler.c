@@ -121,7 +121,7 @@ void sgwu_sxa_handle_session_establishment_request(
                 ogs_pfcp_gtpu_resource_t *resource = NULL;
                 resource = ogs_pfcp_gtpu_resource_find(
                         &ogs_pfcp_self()->gtpu_resource_list,
-                        sess->pdn.apn, OGS_PFCP_INTERFACE_ACCESS);
+                        pdr->apn, OGS_PFCP_INTERFACE_ACCESS);
                 if (resource) {
                     ogs_pfcp_user_plane_ip_resource_info_to_f_teid(
                             &resource->info, &pdr->f_teid, &pdr->f_teid_len);
@@ -295,7 +295,7 @@ void sgwu_sxa_handle_session_modification_request(
                 ogs_pfcp_gtpu_resource_t *resource = NULL;
                 resource = ogs_pfcp_gtpu_resource_find(
                         &ogs_pfcp_self()->gtpu_resource_list,
-                        sess->pdn.apn, OGS_PFCP_INTERFACE_ACCESS);
+                        pdr->apn, OGS_PFCP_INTERFACE_ACCESS);
                 if (resource) {
                     ogs_pfcp_user_plane_ip_resource_info_to_f_teid(
                             &resource->info, &pdr->f_teid, &pdr->f_teid_len);
