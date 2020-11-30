@@ -1499,11 +1499,24 @@ ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
     uint8_t zero[16];
     size_t maxbytes = 0;
 
-    ogs_assert(dnn);
-    subnet = ogs_pfcp_find_subnet_by_dnn(family, dnn);
+    memset(zero, 0, sizeof zero);
+    if (family == AF_INET) {
+        maxbytes = 4;
+    } else if (family == AF_INET6) {
+        maxbytes = 16;
+    } else {
+        ogs_fatal("Invalid family[%d]", family);
+        ogs_assert_if_reached();
+    }
+
+    if (dnn)
+        subnet = ogs_pfcp_find_subnet_by_dnn(family, dnn);
+    else
+        subnet = ogs_pfcp_find_subnet(family);
+
     if (subnet == NULL) {
         ogs_error("CHECK CONFIGURATION: Cannot find subnet [family:%d, dnn:%s]",
-                    family, dnn);
+                    family, dnn ? dnn : "No DNN");
         ogs_error("smf");
         ogs_error("    pdn:");
         if (family == AF_INET)
@@ -1513,16 +1526,6 @@ ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
 
         ogs_assert_if_reached();
         return NULL;
-    }
-
-    memset(zero, 0, sizeof zero);
-    if (family == AF_INET) {
-        maxbytes = 4;
-    } else if (family == AF_INET6) {
-        maxbytes = 16;
-    } else {
-        ogs_fatal("Invalid family[%d]", family);
-        ogs_assert_if_reached();
     }
 
     /* if assigning a static IP, do so. If not, assign dynamically! */
@@ -1667,6 +1670,21 @@ void ogs_pfcp_subnet_remove_all(void)
 
     ogs_list_for_each_safe(&self.subnet_list, next_subnet, subnet)
         ogs_pfcp_subnet_remove(subnet);
+}
+
+ogs_pfcp_subnet_t *ogs_pfcp_find_subnet(int family)
+{
+    ogs_pfcp_subnet_t *subnet = NULL;
+
+    ogs_assert(family == AF_INET || family == AF_INET6);
+
+    ogs_list_for_each(&self.subnet_list, subnet) {
+        if ((subnet->family == AF_UNSPEC || subnet->family == family) &&
+            (strlen(subnet->dnn) == 0))
+            break;
+    }
+
+    return subnet;
 }
 
 ogs_pfcp_subnet_t *ogs_pfcp_find_subnet_by_dnn(int family, const char *dnn)
