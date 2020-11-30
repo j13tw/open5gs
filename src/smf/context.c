@@ -363,7 +363,8 @@ int smf_context_parse_config(void)
                                 if (v) port = atoi(v);
                             } else if (!strcmp(gtpc_key, "dev")) {
                                 dev = ogs_yaml_iter_value(&gtpc_iter);
-                            } else if (!strcmp(gtpc_key, "apn")) {
+                            } else if (!strcmp(gtpc_key, "apn") ||
+                                        !strcmp(gtpc_key, "dnn")) {
                                 /* Skip */
                             } else
                                 ogs_warn("unknown key `%s`", gtpc_key);
@@ -934,8 +935,8 @@ void smf_sess_set_ue_ip(smf_sess_t *sess)
         ogs_pfcp_subnet_t *subnet = NULL;
         ogs_pfcp_subnet_t *subnet6 = NULL;
 
-        subnet = ogs_pfcp_find_subnet(AF_INET, sess->pdn.apn);
-        subnet6 = ogs_pfcp_find_subnet(AF_INET6, sess->pdn.apn);
+        subnet = ogs_pfcp_find_subnet_by_dnn(AF_INET, sess->pdn.dnn);
+        subnet6 = ogs_pfcp_find_subnet_by_dnn(AF_INET6, sess->pdn.dnn);
 
         if (subnet != NULL && subnet6 == NULL)
             sess->pdn.pdn_type = OGS_PDU_SESSION_TYPE_IPV4;
@@ -959,14 +960,14 @@ void smf_sess_set_ue_ip(smf_sess_t *sess)
 
     if (sess->pdn.pdn_type == OGS_PDU_SESSION_TYPE_IPV4) {
         sess->ipv4 = ogs_pfcp_ue_ip_alloc(
-                AF_INET, sess->pdn.apn, (uint8_t *)&sess->pdn.ue_ip.addr);
+                AF_INET, sess->pdn.dnn, (uint8_t *)&sess->pdn.ue_ip.addr);
         ogs_assert(sess->ipv4);
         sess->pdn.paa.addr = sess->ipv4->addr[0];
         ogs_hash_set(smf_self()->ipv4_hash,
                 sess->ipv4->addr, OGS_IPV4_LEN, sess);
     } else if (sess->pdn.pdn_type == OGS_PDU_SESSION_TYPE_IPV6) {
         sess->ipv6 = ogs_pfcp_ue_ip_alloc(
-                AF_INET6, sess->pdn.apn, sess->pdn.ue_ip.addr6);
+                AF_INET6, sess->pdn.dnn, sess->pdn.ue_ip.addr6);
         ogs_assert(sess->ipv6);
 
         subnet6 = sess->ipv6->subnet;
@@ -978,10 +979,10 @@ void smf_sess_set_ue_ip(smf_sess_t *sess)
                 sess->ipv6->addr, OGS_IPV6_LEN, sess);
     } else if (sess->pdn.pdn_type == OGS_PDU_SESSION_TYPE_IPV4V6) {
         sess->ipv4 = ogs_pfcp_ue_ip_alloc(
-                AF_INET, sess->pdn.apn, (uint8_t *)&sess->pdn.ue_ip.addr);
+                AF_INET, sess->pdn.dnn, (uint8_t *)&sess->pdn.ue_ip.addr);
         ogs_assert(sess->ipv4);
         sess->ipv6 = ogs_pfcp_ue_ip_alloc(
-                AF_INET6, sess->pdn.apn, sess->pdn.ue_ip.addr6);
+                AF_INET6, sess->pdn.dnn, sess->pdn.ue_ip.addr6);
         ogs_assert(sess->ipv6);
 
         subnet6 = sess->ipv6->subnet;
@@ -1013,9 +1014,9 @@ void smf_sess_remove(smf_sess_t *sess)
     smf_ue = sess->smf_ue;
     ogs_assert(smf_ue);
    
-    ogs_info("Removed Session: UE IMSI:[%s] APN:[%s] IPv4:[%s] IPv6:[%s]",
+    ogs_info("Removed Session: UE IMSI:[%s] DNN:[%s] IPv4:[%s] IPv6:[%s]",
            smf_ue->imsi_bcd,
-           sess->pdn.apn,
+           sess->pdn.dnn,
        sess->ipv4 ? OGS_INET_NTOP(&sess->ipv4->addr, buf1) : "",
        sess->ipv6 ? OGS_INET6_NTOP(&sess->ipv6->addr, buf2) : "");
 

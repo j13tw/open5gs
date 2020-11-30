@@ -1500,7 +1500,7 @@ ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
     size_t maxbytes = 0;
 
     ogs_assert(dnn);
-    subnet = ogs_pfcp_find_subnet(family, dnn);
+    subnet = ogs_pfcp_find_subnet_by_dnn(family, dnn);
     if (subnet == NULL) {
         ogs_error("CHECK CONFIGURATION: Cannot find subnet [family:%d, dnn:%s]",
                     family, dnn);
@@ -1669,7 +1669,7 @@ void ogs_pfcp_subnet_remove_all(void)
         ogs_pfcp_subnet_remove(subnet);
 }
 
-ogs_pfcp_subnet_t *ogs_pfcp_find_subnet(int family, const char *dnn)
+ogs_pfcp_subnet_t *ogs_pfcp_find_subnet_by_dnn(int family, const char *dnn)
 {
     ogs_pfcp_subnet_t *subnet = NULL;
 
