@@ -364,6 +364,12 @@ ogs_pfcp_pdr_t *ogs_pfcp_handle_create_pdr(ogs_pfcp_sess_t *sess,
         pdr->qfi = message->pdi.qfi.u8;
     }
 
+    if (message->pdi.ue_ip_address.presence) {
+        pdr->ue_ip_addr_len = message->pdi.ue_ip_address.len;
+        memcpy(&pdr->ue_ip_addr,
+                message->pdi.ue_ip_address.data, pdr->ue_ip_addr_len);
+    }
+
     if (message->outer_header_removal.presence) {
         pdr->outer_header_removal_len = message->outer_header_removal.len;
         memcpy(&pdr->outer_header_removal, message->outer_header_removal.data,

@@ -74,10 +74,10 @@ void upf_n4_handle_session_establishment_request(
     cause_value = OGS_PFCP_CAUSE_REQUEST_ACCEPTED;
 
     if (!sess) {
-        ogs_error("Invalid Message Format");
+        ogs_error("No context");
         ogs_pfcp_send_error_message(xact, 0,
                 OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE,
-                OGS_GTP_CAUSE_INVALID_MESSAGE_FORMAT, 0);
+                OGS_GTP_CAUSE_CONTEXT_NOT_FOUND, 0);
         return;
     }
 
@@ -111,12 +111,19 @@ void upf_n4_handle_session_establishment_request(
     ogs_list_for_each(&sess->pfcp.far_list, far)
         setup_gtp_node(far);
 
-    /* Setup UPF-N3-TEID & QFI Hash */
     for (i = 0; i < num_of_created_pdr; i++) {
         pdr = created_pdr[i];
         ogs_assert(pdr);
 
-        if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS) { /* Uplink */
+        if (pdr->src_if == OGS_PFCP_INTERFACE_CORE) { /* Downlink */
+
+            /* Setup UE IP address */
+            if (req->pdn_type.presence && pdr->ue_ip_addr_len)
+                upf_sess_set_ue_ip(sess, req->pdn_type.u8, pdr);
+
+        } else if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS) { /* Uplink */
+
+            /* Setup UPF-N3-TEID & QFI Hash */
             if (pdr->f_teid_len) {
                 if (ogs_pfcp_self()->up_function_features.ftup &&
                     pdr->f_teid.ch) {
