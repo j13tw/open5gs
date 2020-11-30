@@ -281,10 +281,10 @@ void ogs_pfcp_build_create_pdr(
     message->pdi.source_interface.presence = 1;
     message->pdi.source_interface.u8 = pdr->src_if;
 
-    if (pdr->apn) {
+    if (pdr->dnn) {
         message->pdi.network_instance.presence = 1;
         message->pdi.network_instance.len = ogs_fqdn_build(
-            pdrbuf[i].dnn, pdr->apn, strlen(pdr->apn));
+            pdrbuf[i].dnn, pdr->dnn, strlen(pdr->dnn));
         message->pdi.network_instance.data = pdrbuf[i].dnn;
     }
 
@@ -386,10 +386,10 @@ void ogs_pfcp_build_update_pdr(
     message->pdi.source_interface.presence = 1;
     message->pdi.source_interface.u8 = pdr->src_if;
 
-    if (pdr->apn) {
+    if (pdr->dnn) {
         message->pdi.network_instance.presence = 1;
         message->pdi.network_instance.len = ogs_fqdn_build(
-            pdrbuf[i].dnn, pdr->apn, strlen(pdr->apn));
+            pdrbuf[i].dnn, pdr->dnn, strlen(pdr->dnn));
         message->pdi.network_instance.data = pdrbuf[i].dnn;
     }
 
