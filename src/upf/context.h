@@ -98,6 +98,9 @@ upf_sess_t *upf_sess_find_by_up_seid(uint64_t seid);
 upf_sess_t *upf_sess_find_by_ipv4(uint32_t addr);
 upf_sess_t *upf_sess_find_by_ipv6(uint32_t *addr6);
 
+void upf_sess_set_ue_ip(upf_sess_t *sess,
+        const char *dnn, uint8_t pdn_type, ogs_pfcp_ue_ip_addr_t *ue_ip);
+
 #ifdef __cplusplus
 }
 #endif
