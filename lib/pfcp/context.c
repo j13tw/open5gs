@@ -1524,7 +1524,7 @@ ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
         ogs_assert_if_reached();
     }
 
-    // if assigning a static IP, do so. If not, assign dynamically!
+    /* if assigning a static IP, do so. If not, assign dynamically! */
     if (memcmp(addr, zero, maxbytes) != 0) {
         ue_ip = ogs_calloc(1, sizeof(ogs_pfcp_ue_ip_t));
 
