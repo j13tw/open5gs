@@ -76,7 +76,7 @@ void sgwu_sxa_handle_session_establishment_request(
         ogs_error("No Context");
         ogs_pfcp_send_error_message(xact, 0,
                 OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE,
-                OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND, 0);
+                OGS_PFCP_CAUSE_MANDATORY_IE_MISSING, 0);
         return;
     }
 
