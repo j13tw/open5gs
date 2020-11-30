@@ -611,8 +611,8 @@ static bool compare_ue_info(ogs_pfcp_node_t *node, smf_sess_t *sess)
     ogs_assert(node);
     ogs_assert(sess);
 
-    for (i = 0; i < node->num_of_apn; i++)
-        if (ogs_strcasecmp(node->apn[i], sess->pdn.apn) == 0) return true;
+    for (i = 0; i < node->num_of_dnn; i++)
+        if (ogs_strcasecmp(node->dnn[i], sess->pdn.dnn) == 0) return true;
 
     for (i = 0; i < node->num_of_e_cell_id; i++)
         if (node->e_cell_id[i] == sess->e_cgi.cell_id) return true;

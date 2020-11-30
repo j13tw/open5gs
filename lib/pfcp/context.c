@@ -245,7 +245,8 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                 }
                             } else if (!strcmp(pfcp_key, "dev")) {
                                 dev = ogs_yaml_iter_value(&pfcp_iter);
-                            } else if (!strcmp(pfcp_key, "apn")) {
+                            } else if (!strcmp(pfcp_key, "apn") ||
+                                        !strcmp(pfcp_key, "dnn")) {
                                 /* Skip */
                             } else
                                 ogs_warn("unknown key `%s`", pfcp_key);
@@ -299,7 +300,7 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                         ogs_pfcp_subnet_t *subnet = NULL;
                         const char *ipstr = NULL;
                         const char *mask_or_numbits = NULL;
-                        const char *apn = NULL;
+                        const char *dnn = NULL;
                         const char *dev = self.tun_ifname;
                         const char *low[MAX_NUM_OF_SUBNET_RANGE];
                         const char *high[MAX_NUM_OF_SUBNET_RANGE];
@@ -334,7 +335,7 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                 }
                             } else if (!strcmp(pdn_key, "apn") ||
                                         !strcmp(pdn_key, "dnn")) {
-                                apn = ogs_yaml_iter_value(&pdn_iter);
+                                dnn = ogs_yaml_iter_value(&pdn_iter);
                             } else if (!strcmp(pdn_key, "dev")) {
                                 dev = ogs_yaml_iter_value(&pdn_iter);
                             } else if (!strcmp(pdn_key, "range")) {
@@ -375,7 +376,7 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                         }
 
                         subnet = ogs_pfcp_subnet_add(
-                                ipstr, mask_or_numbits, apn, dev);
+                                ipstr, mask_or_numbits, dnn, dev);
                         ogs_assert(subnet);
 
                         subnet->num_of_range = num;
@@ -406,8 +407,8 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                         uint16_t port = self.pfcp_port;
                         uint16_t tac[OGS_MAX_NUM_OF_TAI] = {0,};
                         uint8_t num_of_tac = 0;
-                        const char *apn[OGS_MAX_NUM_OF_APN];
-                        uint8_t num_of_apn = 0;
+                        const char *dnn[OGS_MAX_NUM_OF_DNN];
+                        uint8_t num_of_dnn = 0;
                         uint32_t e_cell_id[OGS_MAX_NUM_OF_CELL_ID] = {0,};
                         uint8_t num_of_e_cell_id = 0;
                         uint64_t nr_cell_id[OGS_MAX_NUM_OF_CELL_ID] = {0,};
@@ -497,29 +498,29 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                         YAML_SEQUENCE_NODE);
                             } else if (!strcmp(pfcp_key, "apn") ||
                                         !strcmp(pfcp_key, "dnn")) {
-                                ogs_yaml_iter_t apn_iter;
-                                ogs_yaml_iter_recurse(&pfcp_iter, &apn_iter);
-                                ogs_assert(ogs_yaml_iter_type(&apn_iter) !=
+                                ogs_yaml_iter_t dnn_iter;
+                                ogs_yaml_iter_recurse(&pfcp_iter, &dnn_iter);
+                                ogs_assert(ogs_yaml_iter_type(&dnn_iter) !=
                                     YAML_MAPPING_NODE);
 
                                 do {
                                     const char *v = NULL;
 
-                                    ogs_assert(num_of_apn <=
-                                            OGS_MAX_NUM_OF_APN);
-                                    if (ogs_yaml_iter_type(&apn_iter) ==
+                                    ogs_assert(num_of_dnn <=
+                                            OGS_MAX_NUM_OF_DNN);
+                                    if (ogs_yaml_iter_type(&dnn_iter) ==
                                             YAML_SEQUENCE_NODE) {
-                                        if (!ogs_yaml_iter_next(&apn_iter))
+                                        if (!ogs_yaml_iter_next(&dnn_iter))
                                             break;
                                     }
 
-                                    v = ogs_yaml_iter_value(&apn_iter);
+                                    v = ogs_yaml_iter_value(&dnn_iter);
                                     if (v) {
-                                        apn[num_of_apn] = v;
-                                        num_of_apn++;
+                                        dnn[num_of_dnn] = v;
+                                        num_of_dnn++;
                                     }
                                 } while (
-                                    ogs_yaml_iter_type(&apn_iter) ==
+                                    ogs_yaml_iter_type(&dnn_iter) ==
                                         YAML_SEQUENCE_NODE);
                             } else if (!strcmp(pfcp_key, "e_cell_id")) {
                                 ogs_yaml_iter_t e_cell_id_iter;
@@ -606,9 +607,9 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                         if (num_of_tac != 0)
                             memcpy(node->tac, tac, sizeof(node->tac));
 
-                        node->num_of_apn = num_of_apn;
-                        if (num_of_apn != 0)
-                            memcpy(node->apn, apn, sizeof(node->apn));
+                        node->num_of_dnn = num_of_dnn;
+                        if (num_of_dnn != 0)
+                            memcpy(node->dnn, dnn, sizeof(node->dnn));
                         
                         node->num_of_e_cell_id = num_of_e_cell_id;
                         if (num_of_e_cell_id != 0)
@@ -743,7 +744,7 @@ ogs_pfcp_gtpu_resource_t *ogs_pfcp_gtpu_resource_add(ogs_list_t *list,
 }
 
 ogs_pfcp_gtpu_resource_t *ogs_pfcp_gtpu_resource_find(ogs_list_t *list,
-        char *apn, ogs_pfcp_interface_t source_interface)
+        char *dnn, ogs_pfcp_interface_t source_interface)
 {
     ogs_pfcp_gtpu_resource_t *resource = NULL;
 
@@ -754,8 +755,8 @@ ogs_pfcp_gtpu_resource_t *ogs_pfcp_gtpu_resource_find(ogs_list_t *list,
 
         if (resource->info.assoni &&
             strlen(resource->info.network_instance) &&
-            apn && strlen(apn) &&
-            ogs_strcasecmp(apn, resource->info.network_instance) != 0) {
+            dnn && strlen(dnn) &&
+            ogs_strcasecmp(dnn, resource->info.network_instance) != 0) {
             match = false;
         }
 
@@ -1490,7 +1491,7 @@ int ogs_pfcp_ue_pool_generate(void)
 }
 
 ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
-        int family, const char *apn, uint8_t *addr)
+        int family, const char *dnn, uint8_t *addr)
 {
     ogs_pfcp_subnet_t *subnet = NULL;
     ogs_pfcp_ue_ip_t *ue_ip = NULL;
@@ -1498,11 +1499,11 @@ ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
     uint8_t zero[16];
     size_t maxbytes = 0;
 
-    ogs_assert(apn);
-    subnet = ogs_pfcp_find_subnet(family, apn);
+    ogs_assert(dnn);
+    subnet = ogs_pfcp_find_subnet(family, dnn);
     if (subnet == NULL) {
-        ogs_error("CHECK CONFIGURATION: Cannot find subnet [family:%d, apn:%s]",
-                    family, apn);
+        ogs_error("CHECK CONFIGURATION: Cannot find subnet [family:%d, dnn:%s]",
+                    family, dnn);
         ogs_error("smf");
         ogs_error("    pdn:");
         if (family == AF_INET)
@@ -1608,7 +1609,7 @@ ogs_pfcp_dev_t *ogs_pfcp_dev_find_by_ifname(const char *ifname)
 
 ogs_pfcp_subnet_t *ogs_pfcp_subnet_add(
         const char *ipstr, const char *mask_or_numbits,
-        const char *apn, const char *ifname)
+        const char *dnn, const char *ifname)
 {
     int rv;
     ogs_pfcp_dev_t *dev = NULL;
@@ -1639,8 +1640,8 @@ ogs_pfcp_subnet_t *ogs_pfcp_subnet_add(
         subnet->prefixlen = atoi(mask_or_numbits);
     }
 
-    if (apn)
-        strcpy(subnet->apn, apn);
+    if (dnn)
+        strcpy(subnet->dnn, dnn);
 
     ogs_pool_init(&subnet->pool, ogs_app()->pool.sess);
 
@@ -1668,17 +1669,17 @@ void ogs_pfcp_subnet_remove_all(void)
         ogs_pfcp_subnet_remove(subnet);
 }
 
-ogs_pfcp_subnet_t *ogs_pfcp_find_subnet(int family, const char *apn)
+ogs_pfcp_subnet_t *ogs_pfcp_find_subnet(int family, const char *dnn)
 {
     ogs_pfcp_subnet_t *subnet = NULL;
 
-    ogs_assert(apn);
+    ogs_assert(dnn);
     ogs_assert(family == AF_INET || family == AF_INET6);
 
     ogs_list_for_each(&self.subnet_list, subnet) {
         if ((subnet->family == AF_UNSPEC || subnet->family == family) &&
-            (strlen(subnet->apn) == 0 ||
-                (strlen(subnet->apn) && ogs_strcasecmp(subnet->apn, apn) == 0)))
+            (strlen(subnet->dnn) == 0 ||
+                (strlen(subnet->dnn) && ogs_strcasecmp(subnet->dnn, dnn) == 0)))
             break;
     }
 
