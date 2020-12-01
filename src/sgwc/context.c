@@ -812,6 +812,9 @@ sgwc_tunnel_t *sgwc_tunnel_add(
 
     far = ogs_pfcp_far_add(&sess->pfcp);
     ogs_assert(far);
+
+    far->apply_action =
+        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
     far->dst_if = dst_if;
     ogs_pfcp_pdr_associate_far(pdr, far);
 
