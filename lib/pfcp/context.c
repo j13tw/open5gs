@@ -993,7 +993,6 @@ ogs_pfcp_far_t *ogs_pfcp_far_add(ogs_pfcp_sess_t *sess)
     far->id = *(far->id_node);
     ogs_assert(far->id > 0 && far->id <= OGS_MAX_NUM_OF_FAR);
 
-    far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     far->dst_if = OGS_PFCP_INTERFACE_UNKNOWN;
 
     far->sess = sess;

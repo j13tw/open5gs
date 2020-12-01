@@ -1219,6 +1219,8 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
     ogs_assert(dl_far);
     qos_flow->dl_far = dl_far;
 
+    dl_far->apply_action =
+        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
     dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
     ogs_pfcp_pdr_associate_far(dl_pdr, dl_far);
 
@@ -1226,6 +1228,7 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
     ogs_assert(ul_far);
     qos_flow->ul_far = ul_far;
 
+    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
     ogs_pfcp_pdr_associate_far(ul_pdr, ul_far);
 
@@ -1321,6 +1324,8 @@ smf_bearer_t *smf_bearer_add(smf_sess_t *sess)
     ogs_assert(dl_far);
     bearer->dl_far = dl_far;
 
+    dl_far->apply_action =
+        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
     dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
     ogs_pfcp_pdr_associate_far(dl_pdr, dl_far);
 
@@ -1328,6 +1333,7 @@ smf_bearer_t *smf_bearer_add(smf_sess_t *sess)
     ogs_assert(ul_far);
     bearer->ul_far = ul_far;
 
+    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
     ogs_pfcp_pdr_associate_far(ul_pdr, ul_far);
 

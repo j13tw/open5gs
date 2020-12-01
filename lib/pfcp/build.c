@@ -443,21 +443,6 @@ void ogs_pfcp_build_create_far(
     message->far_id.presence = 1;
     message->far_id.u32 = far->id;
 
-    if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {
-        far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
-
-    } else if (far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
-        if (far->outer_header_creation_len) {
-            far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
-        } else {
-            far->apply_action =
-                OGS_PFCP_APPLY_ACTION_BUFF | OGS_PFCP_APPLY_ACTION_NOCP;
-        }
-    } else {
-        ogs_fatal("Not implemented = %d", far->dst_if);
-        ogs_assert_if_reached();
-    }
-
     message->apply_action.presence = 1;
     message->apply_action.u8 = far->apply_action;
 
@@ -508,19 +493,17 @@ void ogs_pfcp_build_update_far_activate(
     message->far_id.presence = 1;
     message->far_id.u32 = far->id;
 
-    if (far->apply_action != OGS_PFCP_APPLY_ACTION_FORW) {
-        far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
+    ogs_assert(far->apply_action == OGS_PFCP_APPLY_ACTION_FORW);
 
-        message->apply_action.presence = 1;
-        message->apply_action.u8 = far->apply_action;
-    }
+    message->apply_action.presence = 1;
+    message->apply_action.u8 = far->apply_action;
+
+    message->update_forwarding_parameters.presence = 1;
+    message->update_forwarding_parameters.destination_interface.presence = 1;
+    message->update_forwarding_parameters.
+        destination_interface.u8 = far->dst_if;
 
     if (far->outer_header_creation_len || far->smreq_flags.value) {
-        message->update_forwarding_parameters.presence = 1;
-        message->update_forwarding_parameters.
-            destination_interface.presence = 1;
-        message->update_forwarding_parameters.
-            destination_interface.u8 = far->dst_if;
 
         if (far->outer_header_creation_len) {
             memcpy(&farbuf[i].outer_header_creation,
