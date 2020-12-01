@@ -1324,7 +1324,8 @@ smf_bearer_t *smf_bearer_add(smf_sess_t *sess)
     ogs_assert(dl_far);
     bearer->dl_far = dl_far;
 
-    dl_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
+    dl_far->apply_action =
+        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
     dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
     ogs_pfcp_pdr_associate_far(dl_pdr, dl_far);
 
