@@ -446,12 +446,12 @@ void ogs_pfcp_build_create_far(
     message->apply_action.presence = 1;
     message->apply_action.u8 = far->apply_action;
 
-    message->forwarding_parameters.presence = 1;
-    message->forwarding_parameters.destination_interface.presence = 1;
-    message->forwarding_parameters.destination_interface.u8 =
-        far->dst_if;
-
     if (far->outer_header_creation_len) {
+        message->forwarding_parameters.presence = 1;
+        message->forwarding_parameters.destination_interface.presence = 1;
+        message->forwarding_parameters.destination_interface.u8 =
+            far->dst_if;
+
         memcpy(&farbuf[i].outer_header_creation,
             &far->outer_header_creation, far->outer_header_creation_len);
         farbuf[i].outer_header_creation.teid =
@@ -500,6 +500,10 @@ void ogs_pfcp_build_update_far_activate(
 
     if (far->outer_header_creation_len || far->smreq_flags.value) {
         message->update_forwarding_parameters.presence = 1;
+        message->update_forwarding_parameters.
+            destination_interface.presence = 1;
+        message->update_forwarding_parameters.
+            destination_interface.u8 = far->dst_if;
 
         if (far->outer_header_creation_len) {
             memcpy(&farbuf[i].outer_header_creation,

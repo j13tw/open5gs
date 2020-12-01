@@ -177,7 +177,7 @@ void ogs_pfcp_up_handle_pdr(
             buffering = true;
 
         } else {
-            ogs_error("Not implemented");
+            ogs_error("Not implemented = %d", far->apply_action);
             ogs_pkbuf_free(sendbuf);
         }
     }
@@ -386,12 +386,6 @@ ogs_pfcp_pdr_t *ogs_pfcp_handle_create_pdr(ogs_pfcp_sess_t *sess,
         qer = ogs_pfcp_qer_find_or_add(sess, message->qer_id.u32);
         ogs_assert(qer);
         ogs_pfcp_pdr_associate_qer(pdr, qer);
-    }
-
-    if (message->far_id.presence) {
-        far = ogs_pfcp_far_find_or_add(sess, message->far_id.u32);
-        ogs_assert(far);
-        ogs_pfcp_pdr_associate_far(pdr, far);
     }
 
     if (message->qer_id.presence) {
@@ -635,25 +629,28 @@ ogs_pfcp_far_t *ogs_pfcp_handle_create_far(ogs_pfcp_sess_t *sess,
         *offending_ie_value = OGS_PFCP_APPLY_ACTION_TYPE;
         return NULL;
     }
-    if (message->forwarding_parameters.
-            destination_interface.presence == 0) {
-        return far;
-    }
 
     far->apply_action = message->apply_action.u8;
-    far->dst_if = message->forwarding_parameters.destination_interface.u8;
 
-    if (message->forwarding_parameters.outer_header_creation.presence) {
-        ogs_pfcp_tlv_outer_header_creation_t *outer_header_creation =
-            &message->forwarding_parameters.outer_header_creation;
+    if (message->forwarding_parameters.presence) {
+        if (message->forwarding_parameters.destination_interface.presence) {
+            far->dst_if =
+                message->forwarding_parameters.destination_interface.u8;
+        }
 
-        ogs_assert(outer_header_creation->data);
-        ogs_assert(outer_header_creation->len);
+        if (message->forwarding_parameters.outer_header_creation.presence) {
+            ogs_pfcp_tlv_outer_header_creation_t *outer_header_creation =
+                &message->forwarding_parameters.outer_header_creation;
 
-        memcpy(&far->outer_header_creation,
-                outer_header_creation->data, outer_header_creation->len);
-        far->outer_header_creation.teid =
-                be32toh(far->outer_header_creation.teid);
+            ogs_assert(outer_header_creation->data);
+            ogs_assert(outer_header_creation->len);
+
+            memcpy(&far->outer_header_creation,
+                    outer_header_creation->data, outer_header_creation->len);
+            far->outer_header_creation.teid =
+                    be32toh(far->outer_header_creation.teid);
+        }
+
     }
 
     return far;
@@ -730,8 +727,8 @@ ogs_pfcp_far_t *ogs_pfcp_handle_update_far(ogs_pfcp_sess_t *sess,
     if (message->update_forwarding_parameters.presence) {
         if (message->update_forwarding_parameters.
                 destination_interface.presence) {
-            far->dst_if = message->update_forwarding_parameters.
-                destination_interface.u8;
+            far->dst_if =
+                message->update_forwarding_parameters.destination_interface.u8;
         }
 
         if (message->update_forwarding_parameters.
