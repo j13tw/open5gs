@@ -444,6 +444,12 @@ void ogs_pfcp_build_create_far(
     message->far_id.u32 = far->id;
 
     message->apply_action.presence = 1;
+    if (far->outer_header_creation_len) {
+        far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
+    } else {
+        far->apply_action =
+            OGS_PFCP_APPLY_ACTION_BUFF | OGS_PFCP_APPLY_ACTION_NOCP;
+    }
     message->apply_action.u8 = far->apply_action;
 
     if (far->outer_header_creation_len) {
