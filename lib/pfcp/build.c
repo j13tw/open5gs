@@ -443,31 +443,42 @@ void ogs_pfcp_build_create_far(
     message->far_id.presence = 1;
     message->far_id.u32 = far->id;
 
-    message->apply_action.presence = 1;
-    if (far->outer_header_creation_len) {
+    if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {
         far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
+
+    } else if (far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
+        if (far->outer_header_creation_len) {
+            far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
+        } else {
+            far->apply_action =
+                OGS_PFCP_APPLY_ACTION_BUFF | OGS_PFCP_APPLY_ACTION_NOCP;
+        }
     } else {
-        far->apply_action =
-            OGS_PFCP_APPLY_ACTION_BUFF | OGS_PFCP_APPLY_ACTION_NOCP;
+        ogs_fatal("Not implemented = %d", far->dst_if);
+        ogs_assert_if_reached();
     }
+
+    message->apply_action.presence = 1;
     message->apply_action.u8 = far->apply_action;
 
-    if (far->outer_header_creation_len) {
+    if (far->apply_action == OGS_PFCP_APPLY_ACTION_FORW) {
         message->forwarding_parameters.presence = 1;
         message->forwarding_parameters.destination_interface.presence = 1;
         message->forwarding_parameters.destination_interface.u8 =
             far->dst_if;
 
-        memcpy(&farbuf[i].outer_header_creation,
-            &far->outer_header_creation, far->outer_header_creation_len);
-        farbuf[i].outer_header_creation.teid =
-                htobe32(far->outer_header_creation.teid);
+        if (far->outer_header_creation_len) {
+            memcpy(&farbuf[i].outer_header_creation,
+                &far->outer_header_creation, far->outer_header_creation_len);
+            farbuf[i].outer_header_creation.teid =
+                    htobe32(far->outer_header_creation.teid);
 
-        message->forwarding_parameters.outer_header_creation.presence = 1;
-        message->forwarding_parameters.outer_header_creation.data =
-                &farbuf[i].outer_header_creation;
-        message->forwarding_parameters.outer_header_creation.len =
-                far->outer_header_creation_len;
+            message->forwarding_parameters.outer_header_creation.presence = 1;
+            message->forwarding_parameters.outer_header_creation.data =
+                    &farbuf[i].outer_header_creation;
+            message->forwarding_parameters.outer_header_creation.len =
+                    far->outer_header_creation_len;
+        }
     }
 }
 
