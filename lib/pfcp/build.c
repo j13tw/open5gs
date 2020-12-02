@@ -469,10 +469,9 @@ void ogs_pfcp_build_create_far(
                     far->outer_header_creation_len;
         }
     } else if (far->apply_action & OGS_PFCP_APPLY_ACTION_BUFF) {
-        if (sess->bar) {
-            message->bar_id.presence = 1;
-            message->bar_id.u8 = sess->bar->id;
-        }
+        ogs_assert(sess->bar);
+        message->bar_id.presence = 1;
+        message->bar_id.u8 = sess->bar->id;
     }
 }
 
@@ -495,10 +494,9 @@ void ogs_pfcp_build_update_far_deactivate(
     message->apply_action.presence = 1;
     message->apply_action.u8 = far->apply_action;
 
-    if (sess->bar) {
-        message->bar_id.presence = 1;
-        message->bar_id.u8 = sess->bar->id;
-    }
+    ogs_assert(sess->bar);
+    message->bar_id.presence = 1;
+    message->bar_id.u8 = sess->bar->id;
 }
 
 void ogs_pfcp_build_update_far_activate(
