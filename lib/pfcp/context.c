@@ -929,7 +929,7 @@ void ogs_pfcp_pdr_associate_far(ogs_pfcp_pdr_t *pdr, ogs_pfcp_far_t *far)
 {
     ogs_assert(pdr);
     ogs_assert(far);
-    
+
     pdr->far = far;
 }
 void ogs_pfcp_pdr_associate_urr(ogs_pfcp_pdr_t *pdr, ogs_pfcp_urr_t *urr)
@@ -1336,6 +1336,9 @@ ogs_pfcp_bar_t *ogs_pfcp_bar_new(ogs_pfcp_sess_t *sess)
     ogs_pool_alloc(&sess->bar_id_pool, &bar->id_node);
     ogs_assert(bar->id_node);
 
+    bar->id = *(bar->id_node);
+    ogs_assert(bar->id > 0 && bar->id <= OGS_MAX_NUM_OF_BAR);
+
     bar->sess = sess;
     sess->bar = bar;
 
@@ -1350,13 +1353,13 @@ void ogs_pfcp_bar_delete(ogs_pfcp_bar_t *bar)
     sess = bar->sess;
     ogs_assert(sess);
 
-    bar->sess = NULL;
-    sess->bar = NULL;
-
     if (bar->id_node)
         ogs_pool_free(&bar->sess->bar_id_pool, bar->id_node);
 
     ogs_pool_free(&ogs_pfcp_bar_pool, bar);
+
+    bar->sess = NULL;
+    sess->bar = NULL;
 }
 
 ogs_pfcp_rule_t *ogs_pfcp_rule_add(ogs_pfcp_pdr_t *pdr)

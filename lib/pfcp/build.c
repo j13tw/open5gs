@@ -436,8 +436,12 @@ static struct {
 void ogs_pfcp_build_create_far(
     ogs_pfcp_tlv_create_far_t *message, int i, ogs_pfcp_far_t *far)
 {
+    ogs_pfcp_sess_t *sess = NULL;
+
     ogs_assert(message);
     ogs_assert(far);
+    sess = far->sess;
+    ogs_assert(sess);
 
     message->presence = 1;
     message->far_id.presence = 1;
@@ -446,7 +450,7 @@ void ogs_pfcp_build_create_far(
     message->apply_action.presence = 1;
     message->apply_action.u8 = far->apply_action;
 
-    if (far->apply_action == OGS_PFCP_APPLY_ACTION_FORW) {
+    if (far->apply_action & OGS_PFCP_APPLY_ACTION_FORW) {
         message->forwarding_parameters.presence = 1;
         message->forwarding_parameters.destination_interface.presence = 1;
         message->forwarding_parameters.destination_interface.u8 =
@@ -464,14 +468,23 @@ void ogs_pfcp_build_create_far(
             message->forwarding_parameters.outer_header_creation.len =
                     far->outer_header_creation_len;
         }
+    } else if (far->apply_action & OGS_PFCP_APPLY_ACTION_BUFF) {
+        if (sess->bar) {
+            message->bar_id.presence = 1;
+            message->bar_id.u8 = sess->bar->id;
+        }
     }
 }
 
 void ogs_pfcp_build_update_far_deactivate(
         ogs_pfcp_tlv_update_far_t *message, int i, ogs_pfcp_far_t *far)
 {
+    ogs_pfcp_sess_t *sess = NULL;
+
     ogs_assert(message);
     ogs_assert(far);
+    sess = far->sess;
+    ogs_assert(sess);
 
     message->presence = 1;
     message->far_id.presence = 1;
@@ -481,6 +494,11 @@ void ogs_pfcp_build_update_far_deactivate(
         OGS_PFCP_APPLY_ACTION_BUFF | OGS_PFCP_APPLY_ACTION_NOCP;
     message->apply_action.presence = 1;
     message->apply_action.u8 = far->apply_action;
+
+    if (sess->bar) {
+        message->bar_id.presence = 1;
+        message->bar_id.u8 = sess->bar->id;
+    }
 }
 
 void ogs_pfcp_build_update_far_activate(
@@ -598,6 +616,17 @@ void ogs_pfcp_build_create_urr(
     message->presence = 1;
     message->urr_id.presence = 1;
     message->urr_id.u32 = urr->id;
+}
+
+void ogs_pfcp_build_create_bar(
+    ogs_pfcp_tlv_create_bar_t *message, ogs_pfcp_bar_t *bar)
+{
+    ogs_assert(message);
+    ogs_assert(bar);
+
+    message->presence = 1;
+    message->bar_id.presence = 1;
+    message->bar_id.u8 = bar->id;
 }
 
 ogs_pkbuf_t *ogs_pfcp_build_session_report_request(

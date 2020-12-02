@@ -412,6 +412,9 @@ sgwc_sess_t *sgwc_sess_add(sgwc_ue_t *sgwc_ue, char *apn)
     /* Set APN */
     ogs_cpystrn(sess->pdn.apn, apn, OGS_MAX_APN_LEN+1);
 
+    /* Create BAR in PFCP Session */
+    ogs_pfcp_bar_new(&sess->pfcp);
+
     sess->sgwc_ue = sgwc_ue;
 
     ogs_list_add(&sgwc_ue->sess_list, sess);
@@ -531,6 +534,8 @@ int sgwc_sess_remove(sgwc_sess_t *sess)
     ogs_list_remove(&sgwc_ue->sess_list, sess);
 
     sgwc_bearer_remove_all(sess);
+    if (sess->pfcp.bar)
+        ogs_pfcp_bar_delete(sess->pfcp.bar);
 
     ogs_pfcp_pool_final(&sess->pfcp);
 
@@ -813,10 +818,12 @@ sgwc_tunnel_t *sgwc_tunnel_add(
     far = ogs_pfcp_far_add(&sess->pfcp);
     ogs_assert(far);
 
-    far->apply_action =
-        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
     far->dst_if = dst_if;
     ogs_pfcp_pdr_associate_far(pdr, far);
+
+    far->apply_action =
+        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
+    ogs_assert(sess->pfcp.bar);
 
     ogs_assert(sess->pfcp_node);
     if (sess->pfcp_node->up_function_features.ftup) {
