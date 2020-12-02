@@ -732,6 +732,9 @@ smf_sess_t *smf_sess_add_by_apn(smf_ue_t *smf_ue, char *apn)
     sess->smf_n4_teid = sess->index;
     sess->smf_n4_seid = sess->index;
 
+    /* Create BAR in PFCP Session */
+    ogs_pfcp_bar_new(&sess->pfcp);
+
     /* Set APN */
     ogs_cpystrn(sess->pdn.apn, apn, OGS_MAX_APN_LEN+1);
 
@@ -837,6 +840,9 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
     sess->sm_context_ref = ogs_msprintf("%d",
             (int)ogs_pool_index(&smf_sess_pool, sess));
     ogs_assert(sess->sm_context_ref);
+
+    /* Create BAR in PFCP Session */
+    ogs_pfcp_bar_new(&sess->pfcp);
 
     /* Set PSI */
     sess->psi = psi;
@@ -1069,6 +1075,9 @@ void smf_sess_remove(smf_sess_t *sess)
 
     smf_bearer_remove_all(sess);
 
+    ogs_assert(sess->pfcp.bar);
+    ogs_pfcp_bar_delete(sess->pfcp.bar);
+
     ogs_pfcp_pool_final(&sess->pfcp);
     smf_qfi_pool_final(sess);
 
@@ -1219,18 +1228,21 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
     ogs_assert(dl_far);
     qos_flow->dl_far = dl_far;
 
-    dl_far->apply_action =
-        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
     dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
     ogs_pfcp_pdr_associate_far(dl_pdr, dl_far);
+
+    dl_far->apply_action =
+        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
+    ogs_assert(sess->pfcp.bar);
 
     ul_far = ogs_pfcp_far_add(&sess->pfcp);
     ogs_assert(ul_far);
     qos_flow->ul_far = ul_far;
 
-    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
     ogs_pfcp_pdr_associate_far(ul_pdr, ul_far);
+
+    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
 
     qer = ogs_pfcp_qer_add(&sess->pfcp);
     ogs_assert(qer);
@@ -1324,18 +1336,21 @@ smf_bearer_t *smf_bearer_add(smf_sess_t *sess)
     ogs_assert(dl_far);
     bearer->dl_far = dl_far;
 
-    dl_far->apply_action =
-        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
     dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
     ogs_pfcp_pdr_associate_far(dl_pdr, dl_far);
+
+    dl_far->apply_action =
+        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
+    ogs_assert(sess->pfcp.bar);
 
     ul_far = ogs_pfcp_far_add(&sess->pfcp);
     ogs_assert(ul_far);
     bearer->ul_far = ul_far;
 
-    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
     ogs_pfcp_pdr_associate_far(ul_pdr, ul_far);
+
+    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
 
     ogs_assert(sess->pfcp_node);
     if (sess->pfcp_node->up_function_features.ftup) {

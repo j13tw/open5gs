@@ -409,11 +409,11 @@ sgwc_sess_t *sgwc_sess_add(sgwc_ue_t *sgwc_ue, char *apn)
     sess->sgw_s5c_teid = sess->index;
     sess->sgwc_sxa_seid = sess->index;
 
-    /* Set APN */
-    ogs_cpystrn(sess->pdn.apn, apn, OGS_MAX_APN_LEN+1);
-
     /* Create BAR in PFCP Session */
     ogs_pfcp_bar_new(&sess->pfcp);
+
+    /* Set APN */
+    ogs_cpystrn(sess->pdn.apn, apn, OGS_MAX_APN_LEN+1);
 
     sess->sgwc_ue = sgwc_ue;
 
@@ -534,8 +534,9 @@ int sgwc_sess_remove(sgwc_sess_t *sess)
     ogs_list_remove(&sgwc_ue->sess_list, sess);
 
     sgwc_bearer_remove_all(sess);
-    if (sess->pfcp.bar)
-        ogs_pfcp_bar_delete(sess->pfcp.bar);
+
+    ogs_assert(sess->pfcp.bar);
+    ogs_pfcp_bar_delete(sess->pfcp.bar);
 
     ogs_pfcp_pool_final(&sess->pfcp);
 
