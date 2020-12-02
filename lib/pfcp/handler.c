@@ -892,3 +892,58 @@ bool ogs_pfcp_handle_remove_qer(ogs_pfcp_sess_t *sess,
 
     return true;
 }
+
+ogs_pfcp_bar_t *ogs_pfcp_handle_create_bar(ogs_pfcp_sess_t *sess,
+        ogs_pfcp_tlv_create_bar_t *message,
+        uint8_t *cause_value, uint8_t *offending_ie_value)
+{
+    ogs_assert(message);
+    ogs_assert(sess);
+
+    if (message->presence == 0)
+        return NULL;
+
+    if (message->bar_id.presence == 0) {
+        ogs_error("No BAR-ID");
+        *cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
+        *offending_ie_value = OGS_PFCP_BAR_ID_TYPE;
+        return NULL;
+    }
+
+    if (sess->bar)
+        ogs_pfcp_bar_delete(sess->bar);
+
+    ogs_pfcp_bar_new(sess);
+    ogs_assert(sess->bar);
+
+    sess->bar->id = message->bar_id.u8;
+
+    return sess->bar;
+}
+
+bool ogs_pfcp_handle_remove_bar(ogs_pfcp_sess_t *sess,
+        ogs_pfcp_tlv_remove_bar_t *message,
+        uint8_t *cause_value, uint8_t *offending_ie_value)
+{
+    ogs_assert(sess);
+    ogs_assert(message);
+
+    if (message->presence == 0)
+        return false;
+
+    if (message->bar_id.presence == 0) {
+        ogs_error("No BAR-ID");
+        *cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
+        *offending_ie_value = OGS_PFCP_BAR_ID_TYPE;
+        return false;
+    }
+
+    if (sess->bar && sess->bar->id == message->bar_id.u8) {
+        ogs_pfcp_bar_delete(sess->bar);
+        return true;
+    }
+
+    ogs_error("[%p] Unknown BAR-ID[%d]", sess->bar, message->bar_id.u8);
+    *cause_value = OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND;
+    return false;
+}

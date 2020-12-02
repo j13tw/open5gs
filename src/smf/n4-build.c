@@ -177,16 +177,6 @@ ogs_pkbuf_t *smf_n4_build_qos_flow_modification_request(
             i++;
         }
 
-        /* Remove BAR */
-        if (sess->pfcp.bar) {
-            ogs_pfcp_tlv_remove_bar_t *message = &req->remove_bar;
-
-            message->presence = 1;
-            message->bar_id.presence = 1;
-            message->bar_id.u8 = sess->pfcp.bar->id;
-        } else
-            ogs_assert_if_reached();
-
     } else {
         if (modify_flags & OGS_PFCP_MODIFY_CREATE) {
             ogs_pfcp_pdrbuf_init();

@@ -114,7 +114,6 @@ ogs_pkbuf_t *sgwc_sxa_build_sess_modification_request(
     ogs_pfcp_session_modification_request_t *req = NULL;
     ogs_pfcp_pdr_t *pdr = NULL;
     ogs_pfcp_far_t *far = NULL;
-    ogs_pfcp_bar_t *bar = NULL;
     ogs_pkbuf_t *pkbuf = NULL;
     sgwc_bearer_t *bearer = NULL;
     sgwc_tunnel_t *tunnel = NULL;
@@ -178,15 +177,6 @@ ogs_pkbuf_t *sgwc_sxa_build_sess_modification_request(
                     } else
                         ogs_assert_if_reached();
 
-                    bar = sess->pfcp.bar;
-                    if (bar) {
-                        ogs_pfcp_tlv_remove_bar_t *message = &req->remove_bar;
-
-                        message->presence = 1;
-                        message->bar_id.presence = 1;
-                        message->bar_id.u8 = bar->id;
-                    }
-
                 } else {
                     if (modify_flags & OGS_PFCP_MODIFY_CREATE) {
                         pdr = tunnel->pdr;
@@ -240,7 +230,6 @@ ogs_pkbuf_t *sgwc_sxa_build_bearer_modification_request(
     sgwc_tunnel_t *tunnel = NULL;
     ogs_pfcp_pdr_t *pdr = NULL;
     ogs_pfcp_far_t *far = NULL;
-    ogs_pfcp_bar_t *bar = NULL;
     ogs_pkbuf_t *pkbuf = NULL;
     int num_of_remove_pdr = 0;
     int num_of_remove_far = 0;
@@ -305,17 +294,6 @@ ogs_pkbuf_t *sgwc_sxa_build_bearer_modification_request(
                     message->far_id.u32 = far->id;
 
                     num_of_remove_far++;
-                } else
-                    ogs_assert_if_reached();
-
-                bar = sess->pfcp.bar;
-                if (bar) {
-                    ogs_pfcp_tlv_remove_bar_t *message = &req->remove_bar;
-
-                    message->presence = 1;
-                    message->bar_id.presence = 1;
-                    message->bar_id.u8 = bar->id;
-
                 } else
                     ogs_assert_if_reached();
 

@@ -106,6 +106,11 @@ void sgwu_sxa_handle_session_establishment_request(
     if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED)
         goto cleanup;
 
+    ogs_pfcp_handle_create_bar(&sess->pfcp, &req->create_bar,
+                &cause_value, &offending_ie_value);
+    if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED)
+        goto cleanup;
+
     /* Setup GTP Node */
     ogs_list_for_each(&sess->pfcp.far_list, far)
         setup_gtp_node(far);
@@ -277,6 +282,16 @@ void sgwu_sxa_handle_session_modification_request(
                 &cause_value, &offending_ie_value) == false)
             break;
     }
+    if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED)
+        goto cleanup;
+
+    ogs_pfcp_handle_create_bar(&sess->pfcp, &req->create_bar,
+                &cause_value, &offending_ie_value);
+    if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED)
+        goto cleanup;
+
+    ogs_pfcp_handle_remove_bar(&sess->pfcp, &req->remove_bar,
+            &cause_value, &offending_ie_value);
     if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED)
         goto cleanup;
 
